@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Guess Game</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #121212;
+    color: #fff;
+    padding: 40px;
+  }
+
+  h1 { margin-bottom: 30px; }
+
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(5, 60px);
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .cell {
+    width: 60px;
+    height: 60px;
+    border: 2px solid #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    text-transform: uppercase;
+    border-radius: 6px;
+    transition: transform 0.3s ease, background 0.3s ease;
+  }
+
+  .flip {
+    transform: rotateX(90deg);
+  }
+
+  .correct { background-color: #538d4e; border-color: #538d4e; color: white; }
+  .present { background-color: #b59f3b; border-color: #b59f3b; color: white; }
+  .absent  { background-color: #3a3a3c; border-color: #3a3a3c; color: white; }
+
+  #guessInput {
+    font-size: 20px;
+    padding: 8px;
+    width: 220px;
+    border-radius: 6px;
+    border: 2px solid #444;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  #guessBtn {
+    font-size: 20px;
+    padding: 8px 16px;
+    margin-left: 10px;
+    border-radius: 6px;
+    border: none;
+    background-color: #2a9d8f;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  #guessBtn:hover { background-color: #21867a; }
+
+  #message {
+    height: 28px;
+    margin-top: 15px;
+    color: #ffcc00;
+  }
+
+  @keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    50% { transform: translateX(8px); }
+    75% { transform: translateX(-8px); }
+    100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+
+<h1>Word Guess Game</h1>
+
+<div id="grid"></div>
+
+<input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" />
+<button id="guessBtn" onclick="submitGuess()">Guess</button>
+
+<div id="message"></div>
+
+<script>
+  const WORD_LIST = [
+    "apple","crane","slate","trend","ghost","flame","world","light","stare",
+    "house","candy","drift","brick","couch","ocean","plant","sweet","blaze","plane","baked","black",
+    "white","knife","swift","boxes","build","kills","pills","meter","liter" ,"beach","balls","scary","boost","roast","water","lobby","syrup","munch","hyper","kitty","hello","miner","liner","clock",
+    "money","sunny","bunny","books","looks","cooks","woods","fibre","rocky"
+  ]; // Add more words for real game
+  const VALID_WORDS = [...WORD_LIST];
+
+  let solution = WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)];
+  let currentRow = 0;
+
+  const grid = document.getElementById("grid");
+
+  // Create 6x5 grid
+  for (let i = 0; i < 30; i++) {
+    const cell = document.createElement("div");
+    cell.classList.add("cell");
+    grid.appendChild(cell);
+  }
+
+  function showMsg(text) {
+    const msg = document.getElementById("message");
+    msg.textContent = text;
+    setTimeout(() => msg.textContent = "", 2000);
+  }
+
+  function shakeRow() {
+    const start = currentRow * 5;
+    for (let i = start; i < start + 5; i++) {
+      const cell = grid.children[i];
+      cell.style.animation = "shake 0.3s";
+      cell.addEventListener("animationend", () => cell.style.animation = "");
+    }
+  }
+
+  function submitGuess() {
+    const input = document.getElementById("guessInput");
+    let guess = input.value.toLowerCase();
+    if (guess.length !== 5) {
+      showMsg("Enter 5 letters!");
+      shakeRow();
+      return;
+    }
+    if (!VALID_WORDS.includes(guess)) {
+      showMsg("Word not valid!");
+      shakeRow();
+      return;
+    }
+
+    // Fill row with letters
+    for (let i = 0; i < 5; i++) {
+      const index = currentRow * 5 + i;
+      const cell = grid.children[index];
+      cell.textContent = guess[i].toUpperCase();
+      cell.classList.add("flip");
+      setTimeout(() => {
+        cell.classList.remove("flip");
+        if (solution[i] === guess[i]) cell.classList.add("correct");
+        else if (solution.includes(guess[i])) cell.classList.add("present");
+        else cell.classList.add("absent");
+      }, i * 150);
+    }
+
+    if (guess === solution) {
+      showMsg("🎉 You Win!");
+      input.disabled = true;
+      document.getElementById("guessBtn").disabled = true;
+    } else {
+      currentRow++;
+      if (currentRow === 6) {
+        showMsg("Game Over! Word was: " + solution.toUpperCase());
+        input.disabled = true;
+        document.getElementById("guessBtn").disabled = true;
+      }
+    }
+
+    input.value = "";
+    input.focus();
+  }
+
+  document.getElementById("guessInput").addEventListener("keyup", function(e){
+    if(e.key === "Enter") submitGuess();
+  });
+</script>
+
+</body>
+</html>
